@@ -39,7 +39,7 @@ function bfs(matrix, startNode, visitFn) {
             visited = visited.add(childId);
             listToExplore.push(childId)
             const adjacent = getAdjacentNodesSet(childId, matrix)
-            visitFn(childId, adjacent.intersect(visited), parentChildren)
+            visitFn(childId, adjacent.intersect(visited), parentChildren, nodeIndex)
         })
     }
     while (listToExplore.length > 0 && visited.size < matrix.size)
@@ -66,7 +66,7 @@ function distributeReward({
     //total output reward for each node
     let outReward = Map().set(finder, rewardFinder ? subsidy * (1 - getNodeFee(finder)) : subsidy);
 
-    const mergeReward = (nodeId, parents, parentChildren) => {
+    const mergeReward = (nodeId, parents, parentChildren, parentId) => {
         //cumulative node reward
         const nodeReward = parents.reduce((acc, next) => {
             const children = parentChildren.get(next)
@@ -74,12 +74,13 @@ function distributeReward({
             return acc + outReward.get(next) / childrenCount
         }, 0)
 
-        const fee = getNodeFee(nodeId)
+        const fee = getNodeFee(nodeId, parentId)
         //reward that belongs to node
         reward = reward.set(nodeId, nodeReward * fee)
         //out reward
         outReward = outReward.set(nodeId, nodeReward * (1 - fee))
     }
+
 
     bfs(matrix, finder, mergeReward)
 
