@@ -28,7 +28,7 @@ function bfs(matrix, startNode, visitFn) {
 
     do {
         const nodeIndex = listToExplore.shift();
-        const nodeChildren = getAdjacentNodesSet(nodeIndex, matrix).subtract(visited)
+        const nodeChildren = getAdjacentNodesSet(nodeIndex, matrix, nodeIndex === startNode).subtract(visited)
         //populate parent->children map to determine number of outputs for each parents later
         parentChildren = parentChildren.update(nodeIndex, n => n ? n : nodeChildren)
         parentChildren = nodeChildren.reduce((acc, next) => {

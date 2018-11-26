@@ -47,9 +47,16 @@ function getAdjacentNodes(nodeId, matrix) {
     return rowNodes.concat(colNodes)
 }
 
-function getAdjacentNodesSet(nodeId, matrix) {
+/**
+ * 
+ * @param {*} nodeId 
+ * @param {*} matrix 
+ * @param {*} useDirection whether consider adjacency matrix as a directional 
+ */
+function getAdjacentNodesSet(nodeId, matrix, useDirection = false) {
     const rowNodes = matrix.get(nodeId) ? matrix.get(nodeId).reduce((acc, next, index) => next ? acc.add(index) : acc, Set()) : Set();
-    const colNodes = matrix.reduce((acc, next, index) => next && next.get(nodeId) ? acc.add(index) : acc, Set())
+    //if we are in directional mode, only use indices that are directly set in adjacency matrix e.g. rows
+    const colNodes = useDirection ? List () :  matrix.reduce((acc, next, index) => next && next.get(nodeId) ? acc.add(index) : acc, Set())
     return rowNodes.concat(colNodes)
 }
 
