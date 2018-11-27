@@ -65,16 +65,26 @@ function distributeReward({
     let reward = Map().set(finder, rewardFinder ? subsidy * getNodeFee(finder) : 0);
     //total output reward for each node
     let outReward = Map().set(finder, rewardFinder ? subsidy * (1 - getNodeFee(finder)) : subsidy);
-
+    //maps parent-child reward inflows
+    //e.g parent_child key contains reward received by a child through specified parent
+    let rewardPath = Map().set(`${finder}`,  outReward.get(finder))
     const mergeReward = (nodeId, parents, parentChildren, parentId) => {
-        //cumulative node reward
-        const nodeReward = parents.reduce((acc, next) => {
-            const children = parentChildren.get(next)
-            const childrenCount = children && children.size || 1
-            return acc + outReward.get(next) / childrenCount
-        }, 0)
+        //node reward per each of it's parents
+        const getRewardsPerParent = () => {
+            return parents.reduce((acc, next) => {
+                const children = parentChildren.get(next)
+                const childrenCount = children && children.size || 1
+                return acc.set(`${next}_${nodeId}`, outReward.get(next) / childrenCount)
+            }, Map())
+        }
+
+        const rewardsPerParent = getRewardsPerParent()
 
         const fee = getNodeFee(nodeId, parentId)
+        //cumulative node reward is a sum of rewards flowing through each parent
+        const nodeReward = rewardsPerParent.reduce( (acc, next) => acc + next, 0)
+        //update reward path with new values
+        rewardPath = rewardPath.mergeWith((oldVal, newVal) => oldVal + newVal, rewardsPerParent.reduce( (acc, val, key) => acc.set(key, val *  fee ), Map()))
         //reward that belongs to node
         reward = reward.set(nodeId, nodeReward * fee)
         //out reward
@@ -84,9 +94,8 @@ function distributeReward({
 
     bfs(matrix, finder, mergeReward)
 
-
     return state
-        .set("minDistToGenerator", List())
+        .set("rewardPerParent",rewardPath)
         .update("nodes", nodes => nodes.map(n => {
             const hasRewardUpdate = reward.has(n.get('id'));
             return hasRewardUpdate ? n.update("reward", 0, r => {
