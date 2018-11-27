@@ -67,7 +67,7 @@ function distributeReward({
     let outReward = Map().set(finder, rewardFinder ? subsidy * (1 - getNodeFee(finder)) : subsidy);
     //maps parent-child reward inflows
     //e.g parent_child key contains reward received by a child through specified parent
-    let rewardPath = Map().set(`${finder}`,  outReward.get(finder))
+    let rewardPath = Map().set(`${finder}`,  rewardFinder ? subsidy * (getNodeFee(finder)) : 0)
     const mergeReward = (nodeId, parents, parentChildren, parentId) => {
         //node reward per each of it's parents
         const getRewardsPerParent = () => {
